@@ -10,9 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@serverless/enterprise-plugin": "file:../../../../serverless/enterprise-plugin/dist",
     "express": "^4.17.1",
-    "serverless": "^1.65.0",
     "serverless-http": "^2.3.2"
   }
 }
