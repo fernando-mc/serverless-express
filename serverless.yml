@@ -1,6 +1,6 @@
 org: fernando
-app: flaspress
-service: express
+app: surveys
+service: express-api
 
 provider:
   name: aws

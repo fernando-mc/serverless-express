@@ -4,6 +4,7 @@ const app = express()
 var customers = require('./entities/customers');
 var surveys = require('./entities/surveys');
 var responses = require('./entities/responses');
+const { tagEvent } = require('./serverless_sdk')
 
 app.get('/hello/:name', function (req, res) {
   const name = req.params.name
@@ -12,6 +13,10 @@ app.get('/hello/:name', function (req, res) {
 
 app.get('/customer/:customer_id', async function (req, res) {
   const customer_id = req.params.customer_id
+  tagEvent('customer_id', customer_id, {
+    more: 'data',
+    'about': 'this',
+  });
   const response = await customers.get(customer_id)
   res.send(response)
 })
