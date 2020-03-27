@@ -1,12 +1,23 @@
-tenant: scouredimage
-app: demoapp
-service: expressed
+org: fernando
+app: flaspress
+service: express
 
 provider:
   name: aws
-  runtime: nodejs10.x
-  stage: dev
-  region: us-east-1
+  runtime: nodejs12.x
+  environment:
+    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Scan
+        - dynamodb:Query
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:GetItem
+      Resource: 
+        - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+        - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}/index/sk-pk-index"
 
 functions:
   app:
@@ -14,3 +25,38 @@ functions:
     events:
       - http: ANY /
       - http: 'ANY {proxy+}'
+
+resources:
+  Resources:
+    surveysTable: 
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: pk
+            AttributeType: S
+          - AttributeName: sk
+            AttributeType: S
+        KeySchema:
+          - AttributeName: pk
+            KeyType: HASH
+          - AttributeName: sk
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        GlobalSecondaryIndexes:
+        - IndexName: sk-pk-index
+          KeySchema:
+          - AttributeName: sk
+            KeyType: HASH
+          - AttributeName: pk
+            KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput: 
+            ReadCapacityUnits: 1
+            WriteCapacityUnits: 1
+
+plugins:
+  - serverless-offline
